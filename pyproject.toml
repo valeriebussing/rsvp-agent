@@ -7,7 +7,9 @@ authors = [
     { name = "valeriebussing", email = "v.a.bussing@gmail.com" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "pydantic>=2.14.0",
+]
 
 [project.scripts]
 rsvp-agent = "rsvp_agent.main:main"
