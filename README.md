@@ -2,11 +2,11 @@
 
 An agentic WhatsApp RSVP assistant for multi-day events (like weddings).
 
-The agent contacts guests, collects RSVP information conversationally, remembers what was said recently and proposes updates to guest state. 
+The agent contacts guests, collects RSVP information conversationally, remembers what was said recently and proposes updates to guest state.
 
 Importantly, **the LLM is not the source of truth.** My application validates those updates, applies deterministic RSVP rules, persists the resulting guest state, and follows up when information is missing.
 
-This project is intentionally built as a small containerised demo. It uses **FastAPI, Twilio WhatsApp, Google Sheets, structured LLM outputs, Docker, and explicit application state.** 
+This project is intentionally built as a small containerised demo. It uses **FastAPI, Twilio WhatsApp, Google Sheets, structured LLM outputs, Docker, and explicit application state.**
 
 However, it is designed to **scale beyond a prototype** and to be used for actual events. Google Sheets can be replaced with PostgreSQL behind the repository layer without changing the conversation logic, and the WhatsApp integration can be switched from the Twilio Sandbox to a Meta Business number for real-life use.
 
@@ -84,5 +84,3 @@ flowchart TD
     K --> O[final reply]
     O --> C
 ```
-
-

@@ -1,6 +1,3 @@
-
-from typing import Literal
-
 from pydantic import BaseModel, ConfigDict, Field
 
 from rsvp_agent.rsvp_logic.guest_record import Attendance
