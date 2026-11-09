@@ -21,13 +21,11 @@ def test_guest_record_applies_defaults():
     )
 
     assert guest.language == "en"
-    assert guest.day_1 == "unknown"
-    assert guest.day_2 == "unknown"
-    assert guest.day_3 == "unknown"
-    assert guest.plus_ones == 0
-    assert guest.food_allergies == "unknown"
+    assert guest.attendance == {}
+    assert guest.plus_ones is None
+    assert guest.food_allergies is None
     assert guest.hotel_needed == "unknown"
-    assert guest.rsvp_status == "incomplete"
+    assert guest.rsvp_status == "pending"
 
 
 def test_guest_record_accepts_valid_rsvp_data():
@@ -35,9 +33,7 @@ def test_guest_record_accepts_valid_rsvp_data():
         name="Valerie Andrea",
         phone="+31612345678",
         language="nl",
-        day_1="yes",
-        day_2="no",
-        day_3="unknown",
+        attendance={"fri": "yes", "sat": "yes"},
         plus_ones=2,
         food_allergies="Gluten",
         hotel_needed="yes",
@@ -45,8 +41,7 @@ def test_guest_record_accepts_valid_rsvp_data():
     )
 
     assert guest.language == "nl"
-    assert guest.day_1 == "yes"
-    assert guest.day_2 == "no"
+    assert guest.attendance == {"fri": "yes", "sat": "yes"}
     assert guest.plus_ones == 2
     assert guest.food_allergies == "Gluten"
     assert guest.hotel_needed == "yes"
@@ -85,7 +80,7 @@ def test_guest_record_rejects_invalid_attendance(field, invalid_value):
         )
 
 
-@pytest.mark.parametrize("invalid_status", ["pending", "finished", "yes"])
+@pytest.mark.parametrize("invalid_status", ["unconfirmed", "finished", "yes"])
 def test_guest_record_rejects_invalid_rsvp_status(invalid_status):
     with pytest.raises(ValidationError):
         GuestRecord(
