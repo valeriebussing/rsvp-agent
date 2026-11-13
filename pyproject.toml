@@ -8,7 +8,10 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "google-api-python-client>=2.202.0",
+    "google-auth>=2.62.2",
     "pydantic>=2.14.0",
+    "python-dotenv>=1.2.4",
 ]
 
 [project.scripts]
@@ -25,4 +28,9 @@ dev = [
     "pyrefly>=1.4.0",
     "pytest>=9.1.1",
     "ruff>=0.17.1",
+]
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: tests that connect to external services",
 ]

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Literal, Protocol
+from typing import Literal, Protocol, runtime_checkable
 
 from pydantic import BaseModel, ConfigDict
 
@@ -17,8 +17,10 @@ class ConversationMessage(BaseModel):
     phone: str
     role: MessageRole
     content: str
+    message_sid: str | None = None
 
 
+@runtime_checkable
 class GuestRepository(Protocol):
     """Storage operations for current guest rsvp state"""
 
@@ -31,6 +33,7 @@ class GuestRepository(Protocol):
         ...
 
 
+@runtime_checkable
 class MessageRepository(Protocol):
     """Storage operations for convo mssg history"""
 
@@ -47,6 +50,7 @@ class MessageRepository(Protocol):
         phone: str,
         role: MessageRole,
         content: str,
+        message_sid: str | None = None,
     ) -> None:
         """Append mssg to convo history"""
         ...
