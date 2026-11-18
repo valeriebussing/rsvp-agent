@@ -3,6 +3,7 @@ from uuid import uuid4
 
 import pytest
 from dotenv import load_dotenv
+from collections.abc import Iterator
 
 from rsvp_agent.integrations.google_sheets import GoogleSheetsRepository
 from rsvp_agent.persistence.repositories import (
@@ -30,7 +31,9 @@ def repository() -> GoogleSheetsRepository:
 
 
 @pytest.fixture
-def test_guest(repository: GoogleSheetsRepository) -> GuestRecord:
+def test_guest(
+    repository: GoogleSheetsRepository,
+) -> Iterator[GuestRecord]:
     # Unique synthetic phone identifier for each test run.
     # Never use this value to send real WhatsApp messages.
     phone = f"test-{uuid4().hex}"
@@ -41,9 +44,13 @@ def test_guest(repository: GoogleSheetsRepository) -> GuestRecord:
         language="en",
     )
 
-    # The test row remains in the sheet for inspection
     repository.create(guest)
-    return guest
+
+    try:
+        yield guest
+    finally:
+        delete_test_rows(repository, "MessageHistory", phone)
+        delete_test_rows(repository, "Guests", phone)
 
 
 def test_repository_implements_protocols(
@@ -148,3 +155,57 @@ def test_recent_messages_respects_limit(
         "Message 2",
         "Message 3",
     ]
+
+
+def delete_test_rows(
+    repository: GoogleSheetsRepository,
+    tab: str,
+    phone: str,
+) -> None:
+    """Delete rows belonging to one test guest"""
+
+    rows = repository._read_rows(tab)
+
+    phone_column = 0 if tab == "Guests" else 1
+
+    matching_row_numbers = [
+        row_number
+        for row_number, row in enumerate(rows[1:], start=2)
+        if len(row) > phone_column and row[phone_column] == phone
+    ]
+
+    if not matching_row_numbers:
+        return
+
+    # Fetch spreadsheet metadata to find the tab's numeric sheet ID
+    spreadsheet = (
+        repository.service.spreadsheets()
+        .get(spreadsheetId=repository.spreadsheet_id)
+        .execute()
+    )
+
+    sheet_id = next(
+        sheet["properties"]["sheetId"]
+        for sheet in spreadsheet["sheets"]
+        if sheet["properties"]["title"] == tab
+    )
+
+    # Delete bottom-up so earlier row numbers don't shift
+    requests = [
+        {
+            "deleteDimension": {
+                "range": {
+                    "sheetId": sheet_id,
+                    "dimension": "ROWS",
+                    "startIndex": row_number - 1,
+                    "endIndex": row_number,
+                }
+            }
+        }
+        for row_number in reversed(matching_row_numbers)
+    ]
+
+    repository.service.spreadsheets().batchUpdate(
+        spreadsheetId=repository.spreadsheet_id,
+        body={"requests": requests},
+    ).execute()
